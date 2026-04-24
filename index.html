@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>人材開発支援助成金 Q&A 検索</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      background: #f0f4f8;
+      color: #2d3748;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%);
+      color: white;
+      padding: 24px 32px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    header p {
+      font-size: 0.85rem;
+      opacity: 0.8;
+      margin-top: 4px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #e53e3e;
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+
+    .search-box {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 16px 56px 16px 20px;
+      font-size: 1rem;
+      border: 2px solid #bee3f8;
+      border-radius: 12px;
+      background: white;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: inherit;
+    }
+
+    .search-box input:focus {
+      border-color: #2b6cb0;
+      box-shadow: 0 0 0 3px rgba(43,108,176,0.15);
+    }
+
+    .search-box .search-icon {
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.3rem;
+      color: #a0aec0;
+      pointer-events: none;
+    }
+
+    .search-hint {
+      font-size: 0.8rem;
+      color: #718096;
+      margin-bottom: 16px;
+      padding: 0 4px;
+    }
+
+    .filter-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .filter-tab {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1.5px solid #bee3f8;
+      background: white;
+      color: #2b6cb0;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .filter-tab:hover,
+    .filter-tab.active {
+      background: #2b6cb0;
+      color: white;
+      border-color: #2b6cb0;
+    }
+
+    .result-count {
+      font-size: 0.85rem;
+      color: #718096;
+      margin-bottom: 12px;
+    }
+
+    .result-count span {
+      font-weight: 700;
+      color: #2b6cb0;
+    }
+
+    .qa-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .qa-card {
+      background: white;
+      border-radius: 12px;
+      border: 1.5px solid #e2e8f0;
+      overflow: hidden;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+
+    .qa-card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      border-color: #90cdf4;
+    }
+
+    .qa-card.open {
+      border-color: #2b6cb0;
+      box-shadow: 0 4px 20px rgba(43,108,176,0.12);
+    }
+
+    .qa-question {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .qa-q-icon {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #ebf8ff;
+      color: #2b6cb0;
+      font-weight: 800;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qa-card.open .qa-q-icon {
+      background: #2b6cb0;
+      color: white;
+    }
+
+    .qa-q-text {
+      flex: 1;
+      font-size: 0.95rem;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    .qa-toggle {
+      flex-shrink: 0;
+      font-size: 1.1rem;
+      color: #a0aec0;
+      transition: transform 0.2s;
+      margin-top: 2px;
+    }
+
+    .qa-card.open .qa-toggle {
+      transform: rotate(180deg);
+      color: #2b6cb0;
+    }
+
+    .qa-answer {
+      display: none;
+      padding: 14px 20px 18px 60px;
+      font-size: 0.88rem;
+      line-height: 1.75;
+      color: #4a5568;
+      border-top: 1px solid #edf2f7;
+    }
+
+    .qa-card.open .qa-answer {
+      display: block;
+    }
+
+    .qa-answer ul {
+      padding-left: 18px;
+      margin: 8px 0;
+    }
+
+    .qa-answer li {
+      margin: 4px 0;
+    }
+
+    .qa-answer ol {
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+
+    .qa-answer ol li {
+      margin: 6px 0;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #ebf8ff;
+      color: #2b6cb0;
+      font-size: 0.72rem;
+      padding: 1px 7px;
+      border-radius: 4px;
+      margin-right: 4px;
+      font-weight: 600;
+    }
+
+    .warn {
+      background: #fff5f5;
+      border-left: 3px solid #e53e3e;
+      padding: 10px 14px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      color: #c53030;
+      font-size: 0.85rem;
+    }
+
+    .info {
+      background: #ebf8ff;
+      border-left: 3px solid #2b6cb0;
+      padding: 10px 14px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.85rem;
+    }
+
+    .formula {
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 10px 0;
+      font-size: 0.84rem;
+      white-space: pre-line;
+      line-height: 1.8;
+    }
+
+    .category-label {
+      font-size: 0.7rem;
+      color: #a0aec0;
+      margin-top: 12px;
+      padding-top: 8px;
+      border-top: 1px dashed #e2e8f0;
+    }
+
+    mark {
+      background: #fef08a;
+      border-radius: 2px;
+      padding: 0 1px;
+    }
+
+    .no-result {
+      text-align: center;
+      padding: 60px 20px;
+      color: #a0aec0;
+    }
+
+    .no-result .icon { font-size: 3rem; margin-bottom: 12px; }
+    .no-result p { font-size: 0.95rem; line-height: 1.8; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 0.82rem;
+    }
+
+    table th {
+      background: #ebf8ff;
+      padding: 7px 10px;
+      text-align: left;
+      border: 1px solid #bee3f8;
+      font-weight: 600;
+    }
+
+    table td {
+      padding: 7px 10px;
+      border: 1px solid #e2e8f0;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    table tr:nth-child(even) td { background: #f7fafc; }
+
+    @media (max-width: 600px) {
+      header { padding: 16px; }
+      header h1 { font-size: 1.05rem; }
+      .qa-answer { padding-left: 20px; }
+      .filter-tab { font-size: 0.75rem; padding: 5px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>人材開発支援助成金 Q&amp;A 検索
+    <span class="badge">定額制研修 特化版</span>
+  </h1>
+  <p>事業展開等リスキリング支援コース ― 定額制サービスによる訓練の支給要件・手続き・注意事項</p>
+</header>
+
+<div class="container">
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="質問を入力してください（例：10時間要件、助成率、計画届の期限、5割要件…）" />
+    <span class="search-icon">🔍</span>
+  </div>
+  <p class="search-hint">キーワードで絞り込めます。カテゴリタブでも絞り込み可能です。クリックで回答を展開します。</p>
+
+  <div class="filter-tabs" id="filterTabs">
+    <button class="filter-tab active" data-cat="all">すべて</button>
+    <button class="filter-tab" data-cat="基本">基本・制度概要</button>
+    <button class="filter-tab" data-cat="要件">支給要件</button>
+    <button class="filter-tab" data-cat="経費">経費・助成額</button>
+    <button class="filter-tab" data-cat="手続き">手続き・申請</button>
+    <button class="filter-tab" data-cat="注意">注意・不支給リスク</button>
+    <button class="filter-tab" data-cat="問合せ">要確認・問合せ事項</button>
+  </div>
+
+  <p class="result-count" id="resultCount"></p>
+
+  <div class="qa-list" id="qaList"></div>
+</div>
+
+<script>
+const qaData = [
+  // ===== 基本・制度概要 =====
+  {
+    cat: "基本",
+    q: "定額制研修（定額制サービス）とはどのような制度ですか？",
+    a: `<span class="tag">制度概要</span><br>
+一訓練あたりの対象経費が明確でなく、かつ同額で複数の訓練を受講できる <strong>eラーニング</strong> および <strong>同時双方向型の通信訓練</strong> で実施されるサービスです。いわゆる「サブスク型」の研修サービスです。<br><br>
+<div class="info">本コースは令和4年〜令和8年度の<strong>期間限定の助成金</strong>です。令和8年度末（R9.3.31）までの時限措置となります。</div>
+<strong>重要ポイント：</strong>
+<ul>
+<li>定額制サービスによる訓練を実施する場合は、通学制など他の方法と<strong>組み合わせることはできず</strong>、定額制サービスのみで実施する必要があります</li>
+<li>「今後従事することが予定される職務関連訓練（(ハ)要件）」の実施方法としては定額制サービスは<strong>支給対象外</strong></li>
+</ul>`,
+    tags: ["定額制", "サブスク", "制度", "概要", "定義", "eラーニング"]
+  },
+  {
+    cat: "基本",
+    q: "この助成金の目的・対象は何ですか？",
+    a: `<span class="tag">目的</span><br>
+新規事業の立ち上げなど<strong>事業展開に伴い</strong>、事業主が雇用する労働者に対して新たな分野で必要となる知識及び技能を習得させるための訓練を計画に沿って実施した場合等に、<strong>訓練経費や訓練期間中の賃金の一部を助成</strong>する制度です。<br><br>
+<strong>対象となる訓練の種類（ヘ要件）：</strong>
+<ul>
+<li>(イ) 事業展開に伴い新たな分野で必要な知識・技能の習得訓練</li>
+<li>(ロ) DX・GX（デジタル・カーボンニュートラル）化に関連する訓練</li>
+<li>(ハ) 今後従事予定の職務関連訓練（訓練開始日から3年以内）※定額制サービスは対象外</li>
+</ul>
+<div class="info">令和5年6月から電子申請が可能です。雇用関係助成金ポータル（https://www.esop.mhlw.go.jp/）から申請できます。電子申請には「GビズID」が必要です。</div>`,
+    tags: ["目的", "対象", "事業展開", "DX", "GX", "リスキリング", "電子申請"]
+  },
+  {
+    cat: "基本",
+    q: "新要領（R8.4.8）と旧要領（R8.3.2）の主な変更点は何ですか？",
+    a: `<span class="tag">新旧変更</span><br>
+<strong>① 10時間要件の「置き場所」と「判定単位」の変更（最重要）</strong>
+<table>
+<tr><th>観点</th><th>旧要領（R8.3.2）</th><th>新要領（R8.4.8）</th></tr>
+<tr><td>10時間要件の規定位置</td><td>0303（支給対象訓練の要件）</td><td>0302（支給対象労働者の要件）へ移設</td></tr>
+<tr><td>判定単位</td><td>グループ全員の合計で判定</td><td>個々の対象労働者ごとに判定</td></tr>
+</table>
+<br>
+<strong>② 経費助成の限度額が半減</strong>
+<table>
+<tr><th>訓練種別</th><th>旧要領</th><th>新要領</th></tr>
+<tr><td>eラーニング・通信制</td><td>中小：30万円／大：20万円</td><td>中小：15万円／大：10万円（半減）</td></tr>
+</table>
+<div class="info">定額制サービスの「月額2万円／1人」の上限は変更なし</div><br>
+<strong>③ 設備投資加算（新設）</strong> ─ 中小企業限定の新しい加算制度が追加<br><br>
+<strong>④ 申請書類の簡素化</strong> ─ 対象労働者の修了証・LMS情報の写しの提出が不要に<br><br>
+<strong>⑤ 部外講師の定義明確化</strong> ─「出退勤時刻を確認できる者」と明確化<br><br>
+<strong>⑥ 対象労働者削減時の変更届義務化</strong> ─ 旧要領では不要だったが厳格化`,
+    tags: ["新旧", "変更点", "改正", "10時間", "限度額", "設備投資", "書類簡素化"]
+  },
+
+  // ===== 支給要件 =====
+  {
+    cat: "要件",
+    q: "支給対象事業主になるための要件は何ですか？",
+    a: `<span class="tag">事業主要件</span><span class="tag">0301</span><br>
+以下のすべてを満たす必要があります：
+<ul>
+<li>雇用保険適用事業所の事業主であること</li>
+<li>労働組合等の意見を聴いて作成した<strong>事業内職業能力開発計画</strong>を労働者に周知していること</li>
+<li>当該計画に基づく<strong>職業訓練実施計画</strong>を作成・周知していること</li>
+<li><strong>職業能力開発推進者</strong>を選任していること（事業所ごとに1名以上。従業員100人以下で適任者がいない場合は本社と兼任可）</li>
+<li>「<strong>職業訓練実施計画届</strong>」（様式第1-1号）を管轄労働局長に提出していること</li>
+<li>訓練期間中、被保険者に対して<strong>賃金を適正に支払う</strong>こと（定額制サービスでも業務上義務付け＝労働時間扱いのため賃金支払いが必要。育児休業中訓練は除く）</li>
+<li>「<strong>事業展開等実施計画</strong>」（様式第1-3号）を作成していること</li>
+<li>審査に必要な書類等を整備し、<strong>5年間保存</strong>していること</li>
+</ul>`,
+    tags: ["事業主", "要件", "推進者", "計画届", "賃金", "書類保存", "雇用保険"]
+  },
+  {
+    cat: "要件",
+    q: "支給対象労働者になるための要件は何ですか？",
+    a: `<span class="tag">労働者要件</span><span class="tag">0302</span><br>
+以下のすべてを満たす必要があります：
+<ul>
+<li>事業所の<strong>被保険者</strong>であり、訓練実施期間中も被保険者であること</li>
+<li>「<strong>定額制サービスによる訓練に関する対象労働者一覧</strong>」（様式第3-2号）に記載されていること</li>
+<li>定額制サービスに含まれる職務関連教育訓練を修了し、修了した訓練の<strong>標準学習時間が合計10時間以上</strong>であること（動画視聴等の実時間ではなく標準学習時間でカウント）</li>
+</ul>
+<div class="info">「合計10時間以上」は、1つのコースである必要はなく、複数の訓練の標準学習時間を<strong>合算</strong>してカウントできます。</div>`,
+    tags: ["労働者", "要件", "被保険者", "10時間", "標準学習時間", "対象者"]
+  },
+  {
+    cat: "要件",
+    q: "10時間要件の詳細を教えてください。合算はできますか？",
+    a: `<span class="tag">10時間要件</span><span class="tag">重要</span><br>
+<strong>基本ルール（新要領）：</strong>
+<ul>
+<li>定額制サービスでは、対象労働者が<strong>修了した訓練の標準学習時間を合算して合計10時間以上</strong>であれば要件を満たします</li>
+<li>合算はOKです。短時間の複数講座を組み合わせて10時間を満たす運用が可能です</li>
+<li>「実際の視聴時間」ではなく<strong>「標準学習時間」</strong>でカウントします</li>
+</ul>
+<div class="warn">eラーニング・通信制の「1コースあたり10時間以上」とは<strong>異なる取扱い</strong>です。定額制サービスに「1コース単位で10時間」という条件はかかりません。</div>
+<strong>新要領（R8.4.8）での変更点：</strong>
+<ul>
+<li>旧：グループ全体の合計で判定 → <strong>新：個々の労働者ごとに判定</strong></li>
+<li>10時間に達しなかった労働者は、<strong>その1名分だけ不支給</strong>（他の労働者分は支給対象のまま）</li>
+<li>旧要領にあった「1時間以上なら救済」という特例が廃止されました</li>
+</ul>
+<div class="info">1人ひとりの受講時間管理が従来以上に重要です。教育訓練機関から「受講時間10時間以上の者一覧表」の発行を依頼しておきましょう。</div>`,
+    tags: ["10時間", "標準学習時間", "合算", "要件", "判定", "個人単位", "複数講座"]
+  },
+  {
+    cat: "要件",
+    q: "支給対象訓練の要件は何ですか？",
+    a: `<span class="tag">訓練要件</span><span class="tag">0303</span><br>
+<ul>
+<li>「職業訓練実施計画」に基づき行われる訓練であること</li>
+<li><strong>OFF-JT</strong>（生産ライン外で行われる訓練）であること</li>
+<li><strong>職務に関連した訓練</strong>であること</li>
+<li>教育訓練機関に委託する<strong>事業外訓練</strong>であること（民間の場合、計画届提出日時点で自社HPに訓練情報を掲載していること。SNS・メール・書類送付だけでは不可）</li>
+<li>「訓練の実施期間」が<strong>1年以内</strong>であること</li>
+<li>契約内容と職業訓練実施計画届の内容の<strong>整合性</strong>がとれていること</li>
+<li>ヘ(イ)事業展開、(ロ)DX/GX化、(ハ)今後従事予定の職務（3年以内）のいずれかに該当すること</li>
+</ul>
+<div class="warn">(ハ)今後従事予定の職務関連訓練の場合、<strong>定額制サービスは支給対象外</strong>です。</div>
+<strong>5割要件：</strong>定額制サービスに含まれる全体の講座数に占める支給対象外訓練の割合が<strong>5割以上の場合は対象外</strong>となります。`,
+    tags: ["訓練要件", "OFF-JT", "職務関連", "1年以内", "5割要件", "HP掲載"]
+  },
+  {
+    cat: "要件",
+    q: "事業展開・DX化・GX化はどのような内容ですか？",
+    a: `<span class="tag">ヘ要件</span><br>
+<strong>（イ）事業展開</strong><br>
+新たな製品の製造・新商品やサービスの提供などにより<strong>新たな分野に進出すること</strong>。業種・業態の転換や、製品・サービスの製造方法・提供方法の変更も含まれます。<br>
+訓練開始日（定額制は契約期間初日）から起算して<strong>3年以内に実施予定のもの、または6か月前までに実施したもの</strong>に限ります。<br><br>
+<strong>（ロ）DX・GX化</strong><br>
+企業内のデジタル・DX化やグリーン・カーボンニュートラル化を進めるにあたり、関連業務に従事させる上で必要な専門的知識・技能の習得訓練。<br><br>
+<strong>（ハ）今後従事予定の職務関連訓練</strong><br>
+企業内の人事・人材育成計画に基づき、<strong>訓練開始日から3年以内に従事予定の職務</strong>に必要な知識・技能の習得訓練。<br>
+<div class="warn">（ハ）の場合、<strong>定額制サービスによる訓練は支給対象外</strong>です。</div>`,
+    tags: ["事業展開", "DX", "GX", "デジタル", "グリーン", "カーボンニュートラル", "3年以内"]
+  },
+
+  // ===== 経費・助成額 =====
+  {
+    cat: "経費",
+    q: "助成率・助成額はいくらですか？",
+    a: `<span class="tag">助成率</span><span class="tag">0504</span><br>
+<table>
+<tr><th>企業規模</th><th>経費助成率</th><th>賃金助成額（1人1時間）</th><th>設備投資加算</th></tr>
+<tr><td>中小企業</td><td><strong>75%</strong></td><td>1,000円</td><td>50%（中小のみ）</td></tr>
+<tr><td>大企業</td><td><strong>60%</strong></td><td>500円</td><td>─</td></tr>
+</table>
+<div class="warn">定額制サービスによる訓練は、eラーニング・通信制と同様、<strong>賃金助成は支給されません</strong>（経費助成のみ）。</div>
+<div class="info">同一の事由に係る他の助成金との<strong>併給調整</strong>に注意してください。</div>`,
+    tags: ["助成率", "中小企業", "大企業", "75%", "60%", "賃金助成", "経費助成"]
+  },
+  {
+    cat: "経費",
+    q: "経費助成額の計算方法を教えてください。",
+    a: `<span class="tag">計算式</span><span class="tag">0505</span><br>
+<strong>基本計算式：</strong>
+<div class="formula">定額制サービスの訓練にかかる経費
+× (支給対象労働者数 ÷ 契約者数（総受講者数）)
+× (訓練の実施期間の日数 ÷ 定額制サービスの契約期間の日数)
+× 助成率（中小75% / 大企業60%）
+= 経費助成額</div>
+<strong>契約期間途中で対象労働者数が変更になった場合（新要領で明確化）：</strong>
+<div class="formula">経費 × {
+  (変更前対象労働者数 / 変更前契約者数) × (変更前実施期間日数 / 契約期間日数)
+  + (変更後対象労働者数 / 変更後契約者数) × (変更後実施期間日数 / 契約期間日数)
+} × 助成率</div>`,
+    tags: ["計算", "経費", "按分", "助成額", "算定", "計算式"]
+  },
+  {
+    cat: "経費",
+    q: "支給限度額はいくらですか？",
+    a: `<span class="tag">支給限度額</span><span class="tag">0510</span><br>
+<ul>
+<li>定額制サービスの場合：<strong>1人につき、1月当たり2万円</strong>（訓練実施期間を月割。1月未満の端数は暦日数で按分）</li>
+<li>1事業所・1年度の合計支給額：<strong>1億円を限度</strong></li>
+<li>受講回数制限：同一事業主が同一対象労働者に対して、一の年度で<strong>3回まで</strong>（人への投資促進コースの定額制訓練・自発的職業能力開発訓練と合算）</li>
+</ul>
+<div class="info">eラーニング・通信制の経費助成限度額は新要領で半減しました（中小：15万円、大企業：10万円）。</div>`,
+    tags: ["限度額", "2万円", "1億円", "3回", "上限", "月割"]
+  },
+  {
+    cat: "経費",
+    q: "設備投資加算とはどのような制度ですか？",
+    a: `<span class="tag">設備投資加算</span><span class="tag">新設・中小企業限定</span><br>
+新要領（R8.4.8）で新設された中小企業限定の加算制度です。<br><br>
+<strong>要件：</strong>
+<ul>
+<li>中小企業であること</li>
+<li>訓練で習得した知識・技能を活用し、事業展開/DX/GX化に取り組むこと</li>
+<li>賃金要件：訓練終了日翌日から<strong>1年以内に賃金を5%以上増加</strong></li>
+<li>または資格等手当要件：1年以内に全対象労働者に資格等手当を支払い、賃金を<strong>3%以上増加</strong></li>
+<li>訓練終了後、事業展開促進機器等を<strong>新たに導入（1機器10万円以上）</strong></li>
+<li>「設備投資加算に係る設備投資実施計画」（様式第21号）の作成</li>
+</ul>
+<strong>助成額：</strong>
+<ul>
+<li>1コースの導入費用あたり<strong>50%</strong>（中小企業のみ）</li>
+<li>限度額：支給対象労働者<strong>1人あたり15万円</strong>（10人以上の場合は上限<strong>150万円</strong>）</li>
+</ul>
+<div class="warn">処分制限：導入日翌日から<strong>1年間は処分（転用・譲渡・廃棄等）不可</strong><br>本社一括申請不可。過去受給事業所は訓練開始日時点で前回支給決定日から<strong>3年経過</strong>が必要。</div>`,
+    tags: ["設備投資加算", "中小企業", "賃金5%", "50%", "15万円", "新設", "機器", "DX"]
+  },
+  {
+    cat: "経費",
+    q: "支給対象外となる契約方法・経費にはどんなものがありますか？",
+    a: `<span class="tag">不支給経費</span><br>
+以下の場合は全額または差額部分が支給対象外となります：
+<ul>
+<li>支給対象外訓練の経費を含めて契約している場合の支給対象外経費部分<br>（例：パック契約15万円でも支給対象訓練12万円部分のみ）</li>
+<li>対象労働者一覧の人数を超える区分で高額契約している場合の差額部分<br>（例：30人申請なのに50〜99人プラン54,000円→35,000円のみ助成）</li>
+<li>より安価な契約方法があるのに合理的理由なく高額契約している場合の差額部分<br>（例：10ID一括90,000円プランがあるのに1ID×10人で100,000円→90,000円分のみ助成）</li>
+</ul>
+<div class="warn"><strong>「訓練等に要した経費を支給申請までに申請事業主が全て負担する」ことが絶対要件。</strong><br>教育訓練機関等からの入金額＋助成金額の合計が訓練経費と同額になる場合は<strong>全額対象外</strong>。</div>`,
+    tags: ["不支給", "対象外", "差額", "安価", "契約", "経費負担", "パック"]
+  },
+
+  // ===== 手続き・申請 =====
+  {
+    cat: "手続き",
+    q: "計画届（職業訓練実施計画届）の提出期間はいつですか？",
+    a: `<span class="tag">計画届</span><span class="tag">0602</span><br>
+<strong>原則：</strong>契約期間の初日の<strong>6ヶ月前〜1ヶ月前</strong>まで<br><br>
+<strong>例外（提出期間を経過した場合）：</strong>
+<ul>
+<li>提出期間を経過した定額制サービス、または既契約の定額制サービス（契約初日がR4.12.2以降）については、計画届提出日の<strong>1ヶ月後を契約期間の初日とみなして</strong>部分的に申請可能</li>
+</ul>
+<strong>提出方法：</strong>
+<ul>
+<li>窓口直接提出</li>
+<li>郵送（消印ではなく<strong>到達日</strong>が提出日。行政機関の休日に到達した場合は翌開庁日）</li>
+<li>電子申請（雇用関係助成金ポータル）</li>
+</ul>
+<div class="info">作成単位：定額制サービスの<strong>契約ごとに作成</strong>（雇用保険適用事業所ごと）</div>`,
+    tags: ["計画届", "提出", "6ヶ月", "1ヶ月前", "期限", "郵送", "電子申請"]
+  },
+  {
+    cat: "手続き",
+    q: "支給申請の期限はいつですか？",
+    a: `<span class="tag">支給申請</span><span class="tag">0803</span><br>
+<ul>
+<li>訓練終了日の翌日から起算して<strong>2ヶ月以内</strong>（厳守）</li>
+<li>「訓練の実施期間」内に支給要件を満たした対象労働者がいれば、<strong>支給要件を満たした日の翌日から</strong>当該対象者分の申請可（早期申請）</li>
+<li>ただし、最終的な申請期限は訓練終了日翌日から<strong>2ヶ月以内</strong></li>
+</ul>
+<div class="warn">2ヶ月の期限を過ぎると申請できなくなります。厳守してください。</div>`,
+    tags: ["申請", "期限", "2ヶ月", "期間", "締切", "早期申請"]
+  },
+  {
+    cat: "手続き",
+    q: "対象労働者を変更・追加・削減する場合はどうすればよいですか？",
+    a: `<span class="tag">変更届</span><span class="tag">0700</span><br>
+<strong>対象労働者を削減する場合（新要領で厳格化）：</strong>
+<ul>
+<li>契約変更に係る<strong>適用日の前日まで</strong>に変更届を提出することが必要（旧要領では変更届不要だったが義務化）</li>
+</ul>
+<strong>計画届提出時に未届の労働者を後から追加したい場合：</strong>
+<ul>
+<li>届出していなかった労働者は、受講自体は可能ですが、<strong>支給対象労働者には含められません</strong></li>
+<li>その者の受講により契約額が増加した場合、当該増加分は助成対象外</li>
+<li><strong>所定期日までに変更届を提出すれば</strong>、支給対象労働者に含められる可能性あり（具体的な期日は所管労働局に要確認）</li>
+</ul>`,
+    tags: ["変更届", "追加", "削減", "未届", "労働者変更", "追加申請"]
+  },
+  {
+    cat: "手続き",
+    q: "必要な書類・申請書類は何ですか？",
+    a: `<span class="tag">申請書類</span><span class="tag">0804</span><br>
+<strong>主な書類（定額制サービスの場合）：</strong>
+<ul>
+<li>「職業訓練実施計画届」（様式第1-1号）</li>
+<li>「事業展開等実施計画」（様式第1-3号）</li>
+<li>「定額制サービスによる訓練に関する対象労働者一覧」（様式第3-2号）</li>
+<li>「定額制サービスによる訓練実施結果報告書」（様式第8-5号）</li>
+<li>教育訓練機関が発行する「<strong>受講時間10時間以上の者一覧表</strong>」（雇用保険適用事業所ごとに作成・訓練機関の証明付き）</li>
+</ul>
+<div class="info">新要領での簡素化：対象労働者の修了証・LMS情報の写しの提出は<strong>不要</strong>（事業所での整備・保管は必要）。対象労働者が<strong>10人以上の場合は任意の10人分の報告書</strong>で足りる。</div>
+<strong>複数事業所で法人単位契約の場合：</strong>
+<ul>
+<li>「定額制サービスによる訓練に関する事業所確認票」（様式第14-1号）の提出が必要</li>
+</ul>`,
+    tags: ["書類", "様式", "申請書類", "一覧表", "修了証", "LMS", "10人以上"]
+  },
+  {
+    cat: "手続き",
+    q: "複数の雇用保険適用事業所がある法人の場合、どこで手続きをしますか？",
+    a: `<span class="tag">複数事業所</span><br>
+原則として、「<strong>主たる適用事業所</strong>」（当該定額制サービスを利用する被保険者数が最も多い事業所）が所在する労働局で一括手続きを行います。<br><br>
+<ul>
+<li>支給限度額も主たる適用事業所に計上されます</li>
+<li>「定額制サービスによる訓練に関する事業所確認票」（様式第14-1号）の提出が必要です</li>
+</ul>
+<div class="info">設備投資加算については、<strong>本社一括申請は不可</strong>です。</div>`,
+    tags: ["複数事業所", "本社", "一括申請", "主たる事業所", "事業所確認票"]
+  },
+  {
+    cat: "手続き",
+    q: "契約期間が1年を超える定額制サービスの場合はどうなりますか？",
+    a: `<span class="tag">1年超契約</span><span class="tag">自動更新</span><br>
+定額制サービスによる訓練の実施期間は<strong>1年以内</strong>が原則です。<br><br>
+<strong>契約期間が1年を超える場合：</strong><br>
+契約期間の初日から<strong>1年ごとに区切って申請</strong>を行い、それぞれ支給要件を満たすことで助成を受けられます。<br><br>
+<strong>自動更新の定額制サービスの場合：</strong><br>
+申請事業主が<strong>任意に設定した日</strong>を訓練の実施期間の最終日とします。<br>
+（例：契約期間の初日が1月1日で3か月ごと自動更新の場合、3月31日・6月30日・9月30日・12月31日のいずれかを設定）`,
+    tags: ["1年超", "自動更新", "契約期間", "区切り", "更新", "実施期間"]
+  },
+
+  // ===== 注意・不支給リスク =====
+  {
+    cat: "注意",
+    q: "訓練を自発的に受講した場合や途中退職した場合はどうなりますか？",
+    a: `<span class="tag">自発的受講</span><span class="tag">途中退職</span><br>
+<strong>自発的受講の場合：</strong>
+<ul>
+<li>業務命令ではなく「専ら労働者の自発」で受講している場合は<strong>助成対象外</strong></li>
+<li>業務命令＋自発的受講がある場合、自発受講部分は10時間要件の時間数にカウントできないが、それ自体で直ちに助成対象外になるわけではない</li>
+</ul>
+<strong>訓練期間中に退職した場合：</strong>
+<ul>
+<li>訓練実施期間の途中で被保険者でなくなると、原則、当該労働者分の経費は<strong>助成対象外</strong></li>
+<li>ただし、<strong>事業主の責めによらない理由</strong>（本人の自己都合退職・病気・怪我等）の場合は、当該労働者が10時間要件を満たさなくても<strong>全契約期間分の経費が支給対象</strong></li>
+</ul>`,
+    tags: ["自発的受講", "退職", "途中退職", "業務命令", "自己都合", "事業主の責め"]
+  },
+  {
+    cat: "注意",
+    q: "不適正な勧誘とはどのようなものですか？注意すべきことは？",
+    a: `<span class="tag">不正受給</span><span class="tag">警告</span><br>
+厚労省パンフレットで警告されている不適正な勧誘の例：
+<ul>
+<li>「受講料は実質無料の上、支払った額以上に利益を上げることができる」→ <strong>助成金の仕組み上あり得ません</strong></li>
+<li>「訓練終了後のアンケートへの協力金として支払い、実質無料」→ 実質的な負担減額とみなし<strong>経費助成対象外</strong></li>
+<li>「教育訓練機関が紹介した会社への営業協力の対価を訓練経費支払に充当」→ 同上、対象外</li>
+<li>「AI研修とAIツール導入をセットで、AIツール導入費用も研修費用として申請できる」→ <strong>AIツール導入費用は対象経費ではない</strong></li>
+<li>「厚労省から委託を受けた」と装ったFAX等の勧誘 → <strong>厚労省・労働局は関与していない</strong></li>
+</ul>
+<div class="warn">不正受給が認定されると：助成金の全額または一部の返還（年3%の延滞金＋返還額の20%の違約金を加算）、事業主名の公表、5年間助成金受給不可などの重いペナルティがあります。悪質な場合は刑事告訴。訓練機関・申請代理人（社労士）にも<strong>連帯責任</strong>あり。</div>`,
+    tags: ["不正受給", "勧誘", "詐欺", "ペナルティ", "警告", "AIツール", "実質無料"]
+  },
+  {
+    cat: "注意",
+    q: "趣味教養系の講座が含まれる場合はどうなりますか？（5割要件）",
+    a: `<span class="tag">5割要件</span><span class="tag">支給対象外</span><br>
+<ul>
+<li>定額制サービスに含まれる<strong>全講座数の5割以上が支給対象外訓練</strong>（趣味教養系等）だと、その定額制サービス全体が<strong>助成対象外</strong>になります</li>
+<li>「10時間要件」は職務関連教育訓練の受講時間のみでカウントします</li>
+<li>対象・対象外を区別して契約可能なら、対象部分のみの経費が助成対象になります</li>
+</ul>
+<div class="info">「全講座数」の数え方（契約パッケージ全講座か利用可能全講座かなど）は曖昧な部分があるため、所管労働局への事前確認を推奨します。</div>`,
+    tags: ["趣味", "教養", "5割", "対象外", "講座数", "全講座"]
+  },
+  {
+    cat: "注意",
+    q: "教育訓練機関のHP掲載要件について教えてください。",
+    a: `<span class="tag">HP要件</span><br>
+民間の教育訓練機関が定額制サービスによる訓練を提供する場合、<strong>計画届の提出日時点</strong>で、自社のホームページに以下の情報を掲載していることが必要です：
+<ul>
+<li>当該訓練等の概要</li>
+<li>当該民間の教育訓練機関の連絡先</li>
+<li>申込み又は資料請求可能な状態であることが分かること</li>
+</ul>
+<div class="warn">SNS・メール・書類送付だけでは不可です。<strong>誰でも閲覧できるHP上での掲載</strong>が必要です。</div>`,
+    tags: ["HP", "ホームページ", "掲載", "教育訓練機関", "民間", "要件"]
+  },
+  {
+    cat: "注意",
+    q: "実務上で特に気をつけるべきポイントは何ですか？",
+    a: `<span class="tag">実務ポイント</span><span class="tag">新要領対応</span><br>
+<ol>
+<li><strong>10時間は個人単位で管理</strong>：10時間未満の労働者はその1名分だけ不支給。労働者ごとの受講時間トラッキングを徹底する</li>
+<li><strong>「受講時間10時間以上一覧表」の発行依頼</strong>：教育訓練機関に雇用保険適用事業所ごと・訓練機関の証明付きで発行してもらう段取りが必須</li>
+<li><strong>対象労働者削減時も変更届が必要</strong>：手続き漏れに注意</li>
+<li><strong>経費助成限度額が半減</strong>（eラーニング等）：予算計画の見直しが必要</li>
+<li><strong>設備投資加算の要件を精査</strong>：賃金5%増または資格手当3%増の達成＋機器導入が条件</li>
+<li><strong>受講回数制限</strong>（年度3回まで、人への投資促進コース合算）に注意</li>
+<li><strong>計画届提出前に対象者を届け出る</strong>：未届労働者に受講させても支給対象外</li>
+<li><strong>教育訓練機関からの返金・営業協力金等</strong>は全額支給対象外リスク</li>
+<li><strong>電子申請はGビズID取得が必要</strong>：取得は早めに（紙→電子に切替えると以降は電子で統一必要）</li>
+<li><strong>時限措置</strong>：本助成金は令和8年度末（R9.3.31）まで。活用するなら早めに動く</li>
+</ol>`,
+    tags: ["実務", "注意", "ポイント", "チェックリスト", "失敗防止", "まとめ"]
+  },
+
+  // ===== 要確認・問合せ事項 =====
+  {
+    cat: "問合せ",
+    q: "職業能力開発推進者の「適任者」とはどのような人ですか？",
+    a: `<span class="tag">問合せ推奨</span><span class="tag">A-1</span><br>
+要領では「従業員100人以下で適任者がいない場合は本社と兼任可」とされています。<br><br>
+<strong>要領上の目安：</strong>「従業員の職業能力開発及び向上に関する企画や訓練の実施に関する権限を有する者」を選任することが望ましく、教育訓練部門の組織が確立されている事業所では当該組織の部課長、それ以外では人事労務担当部課長等がこれに当たります。<br><br>
+<div class="warn">「適任者」の具体的な判断基準（資格・経験年数の有無）は曖昧なため、<strong>所管労働局への事前確認</strong>を推奨します。既存の人事担当者が兼任できるかも合わせて確認してください。</div>`,
+    tags: ["推進者", "適任者", "兼任", "人事担当", "問合せ", "100人以下"]
+  },
+  {
+    cat: "問合せ",
+    q: "「事業展開」「DX化」「GX化」に該当するか判断が難しいのですが？",
+    a: `<span class="tag">問合せ推奨</span><span class="tag">B-1</span><br>
+<strong>曖昧になりやすいケース：</strong>
+<ul>
+<li>既存事業の延長線上のデジタル化（例：紙→Excel、社内SaaS導入等）がDX化に該当するか</li>
+<li>環境配慮製品開発等がGX化に該当するか</li>
+<li>(イ)「新商品・新サービス・新分野」の線引き</li>
+</ul>
+<div class="warn"><strong>「事業展開等実施計画」（様式第1-3号）を作成する前に、必ず所管労働局に事前確認を取ることを強く推奨します。</strong></div>`,
+    tags: ["事業展開", "DX", "GX", "判断", "該当性", "問合せ", "Excel", "SaaS"]
+  },
+  {
+    cat: "問合せ",
+    q: "「修了した訓練」の定義が曖昧です。どのように確認すればよいですか？",
+    a: `<span class="tag">問合せ推奨</span><span class="tag">B-5</span><br>
+<strong>曖昧な点：</strong>
+<ul>
+<li>「修了」の定義（全章履修＋修了テスト合格が必要か、視聴完了のみで可か）</li>
+<li>同一テーマのシリーズ物（章立て・レベル別編成）を1つの修了訓練として扱うか、章ごとに個別の修了訓練としてカウントするか（10時間の積み上げ方・修了証発行単位に直結）</li>
+<li>途中離脱した講座の標準学習時間を合算対象に入れてよいか</li>
+</ul>
+<div class="warn"><strong>確認が必要な点：</strong>
+<ul>
+<li>教育訓練機関が発行する「受講時間10時間以上の者一覧表」で、どの粒度（コース単位/章単位/シリーズ全体）の標準学習時間を証明してもらうのが適切か、所管労働局に事前照会</li>
+<li>修了認定の基準（視聴完了・確認テスト・修了証発行）を教育訓練機関側で明文化してもらえるか確認</li>
+</ul></div>`,
+    tags: ["修了", "定義", "シリーズ", "章", "コース", "問合せ", "修了テスト"]
+  },
+  {
+    cat: "問合せ",
+    q: "「標準学習時間」の算定方法は？教育訓練機関の公称値でよいですか？",
+    a: `<span class="tag">問合せ推奨</span><span class="tag">B-6</span><br>
+要領では「動画視聴等の実時間ではなく標準学習時間でカウント」とされています。<br><br>
+<strong>標準学習時間の定義：</strong>訓練を習得するために通常必要な時間として、あらかじめ受講案内等によって定められているもの。<br><br>
+<div class="warn">教育訓練機関の公称値をそのまま採用して良いかどうか、一定の根拠資料が必要かどうかは、<strong>所管労働局に確認することを推奨</strong>します。教育訓練機関発行の証明書式・根拠資料の求められる水準についても確認してください。</div>`,
+    tags: ["標準学習時間", "算定", "公称値", "根拠", "問合せ", "証明"]
+  },
+  {
+    cat: "問合せ",
+    q: "法令上の義務がある講習は助成対象外ですか？",
+    a: `<span class="tag">法令義務講習</span><span class="tag">B-4</span><br>
+新要領では以下のものが除外されています：
+<ul>
+<li>法令等において講習等の実施が義務付けられているもの</li>
+<li>「法令等において事業主に対して訓練等を受けた労働者や資格を持った労働者を設置することが義務づけられており、当該労働者に対して訓練等を実施しなければ業務を実施できない場合」も対象外</li>
+</ul>
+<div class="info">ただし例外として、<strong>労働者にとって資格取得のための法定講習等である場合は助成対象</strong>（従前どおり）。</div>
+<div class="warn">具体的な職種・資格（宅建士、電気主任技術者、衛生管理者等）ごとの該当性は曖昧なため、<strong>所管労働局への事前確認</strong>を推奨します。</div>`,
+    tags: ["法定講習", "義務", "宅建", "衛生管理者", "除外", "対象外", "法令"]
+  },
+  {
+    cat: "問合せ",
+    q: "他の助成金と併給はできますか？",
+    a: `<span class="tag">併給調整</span><span class="tag">G-1</span><br>
+同一の事由（訓練受講・経費・賃金）に係る他の助成金との<strong>併給調整</strong>に注意が必要です。<br><br>
+<div class="warn">キャリアアップ助成金、業務改善助成金、IT導入補助金等との併給可否については、想定されるケースを<strong>所管労働局に事前確認</strong>することを推奨します。</div>`,
+    tags: ["併給", "併用", "キャリアアップ", "IT導入補助金", "複数助成金", "調整"]
+  },
+  {
+    cat: "問合せ",
+    q: "「事業主の責めによらない理由」にはどのようなものが含まれますか？",
+    a: `<span class="tag">問合せ推奨</span><span class="tag">A-3</span><br>
+要領では「本人の自己都合退職・病気・怪我等」が該当すると明示されています。<br><br>
+<strong>曖昧な点：</strong>
+<ul>
+<li>育児休業・介護休業・長期入院・配置転換・出向等は該当するか</li>
+</ul>
+<div class="warn">個別事由ごとに該当可否の<strong>事前確認</strong>を取っておくことを強く推奨します。<br>事業主の責めによらない場合、当該労働者が10時間要件を満たさなくても全契約期間分の経費が支給対象になります。</div>`,
+    tags: ["事業主の責め", "退職理由", "育児休業", "介護", "病気", "問合せ"]
+  },
+  {
+    cat: "問合せ",
+    q: "問い合わせ先はどこですか？",
+    a: `<span class="tag">問合せ先</span><br>
+<table>
+<tr><th>問い合わせ内容</th><th>問い合わせ先</th></tr>
+<tr><td>要件の該当性、計画届、支給申請、個別判断</td><td>管轄都道府県労働局の人材開発支援係（事業所所在地）</td></tr>
+<tr><td>電子申請の操作方法、システム障害</td><td>雇用関係助成金ポータルヘルプデスク</td></tr>
+<tr><td>GビズIDの取得・変更・再発行</td><td>GビズID運営事務局</td></tr>
+<tr><td>不適正な勧誘、悪質事案の通報</td><td>管轄労働局または厚労省（人材開発統括官付）</td></tr>
+<tr><td>事業展開等実施計画の専門的助言</td><td>認定経営革新等支援機関（中小企業庁登録）</td></tr>
+</table>
+<div class="info">問い合わせ先は原則、事業所を管轄する<strong>都道府県労働局（人材開発支援係等）</strong>です。</div>`,
+    tags: ["問合せ先", "労働局", "GビズID", "ヘルプデスク", "連絡先", "電話"]
+  },
+];
+
+// ===== アプリロジック =====
+let currentCat = "all";
+let currentQuery = "";
+
+function escapeRe(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function highlight(text, query) {
+  if (!query.trim()) return text;
+  const words = query.trim().split(/[\s\u3000]+/).filter(w => w.length > 0);
+  let result = text;
+  words.forEach(word => {
+    const re = new RegExp(`(${escapeRe(word)})`, 'gi');
+    result = result.replace(re, '<mark>$1</mark>');
+  });
+  return result;
+}
+
+function score(item, query) {
+  if (!query.trim()) return 1;
+  const words = query.trim().split(/[\s\u3000]+/).filter(w => w.length > 0);
+  let s = 0;
+  words.forEach(w => {
+    const lw = w.toLowerCase();
+    // 質問文でのマッチは高スコア
+    const qMatches = (item.q.toLowerCase().match(new RegExp(escapeRe(lw), 'g')) || []).length;
+    // タグでのマッチ
+    const tMatches = (item.tags || []).filter(t => t.toLowerCase().includes(lw)).length;
+    // 回答文でのマッチ
+    const aText = item.a.replace(/<[^>]+>/g, '').toLowerCase();
+    const aMatches = (aText.match(new RegExp(escapeRe(lw), 'g')) || []).length;
+    s += qMatches * 4 + tMatches * 3 + aMatches;
+  });
+  return s;
+}
+
+function render() {
+  const q = currentQuery.trim();
+  const list = document.getElementById("qaList");
+  const countEl = document.getElementById("resultCount");
+
+  let items = qaData;
+
+  if (currentCat !== "all") {
+    items = items.filter(item => item.cat === currentCat);
+  }
+
+  if (q) {
+    items = items.filter(item => score(item, q) > 0);
+    items.sort((a, b) => score(b, q) - score(a, q));
+  }
+
+  countEl.innerHTML = `<span>${items.length}</span> 件のQ&Aが見つかりました`;
+
+  if (items.length === 0) {
+    list.innerHTML = `<div class="no-result"><div class="icon">🔍</div><p>「${q}」に一致するQ&Aが見つかりませんでした。<br>別のキーワードで試してみてください。</p></div>`;
+    return;
+  }
+
+  list.innerHTML = items.map(item => {
+    const qText = q ? highlight(item.q, q) : item.q;
+    const aText = q ? highlight(item.a, q) : item.a;
+    return `
+    <div class="qa-card">
+      <div class="qa-question" onclick="this.closest('.qa-card').classList.toggle('open')">
+        <div class="qa-q-icon">Q</div>
+        <div class="qa-q-text">${qText}</div>
+        <div class="qa-toggle">▼</div>
+      </div>
+      <div class="qa-answer">
+        ${aText}
+        <div class="category-label">カテゴリ: ${item.cat}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+document.getElementById("searchInput").addEventListener("input", e => {
+  currentQuery = e.target.value;
+  render();
+});
+
+document.getElementById("filterTabs").addEventListener("click", e => {
+  const tab = e.target.closest('.filter-tab');
+  if (!tab) return;
+  document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
+  tab.classList.add("active");
+  currentCat = tab.dataset.cat;
+  render();
+});
+
+// 初回描画
+render();
+</script>
+</body>
+</html>

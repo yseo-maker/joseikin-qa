@@ -317,11 +317,117 @@
 
     table tr:nth-child(even) td { background: #f7fafc; }
 
+    .view-toggle-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 12px;
+    }
+
+    .view-toggle-btn {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: 1.5px solid #bee3f8;
+      background: white;
+      color: #2b6cb0;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .view-toggle-btn:hover,
+    .view-toggle-btn.active {
+      background: #2b6cb0;
+      color: white;
+      border-color: #2b6cb0;
+    }
+
+    .contacts-section { display: none; }
+    .contacts-section.visible { display: block; }
+
+    .qa-section { display: block; }
+    .qa-section.hidden { display: none; }
+
+    .region-block {
+      margin-bottom: 24px;
+    }
+
+    .region-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #718096;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+
+    .contact-card {
+      background: white;
+      border-radius: 10px;
+      border: 1.5px solid #e2e8f0;
+      padding: 12px 14px;
+      transition: box-shadow 0.15s, border-color 0.15s;
+    }
+
+    .contact-card:hover {
+      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+      border-color: #90cdf4;
+    }
+
+    .contact-pref {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a365d;
+      margin-bottom: 4px;
+    }
+
+    .contact-office {
+      font-size: 0.72rem;
+      color: #718096;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .contact-phone {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: #2b6cb0;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .contact-phone:hover { text-decoration: underline; }
+
+    .contacts-note {
+      font-size: 0.78rem;
+      color: #718096;
+      background: #f7fafc;
+      border-left: 3px solid #90cdf4;
+      padding: 8px 12px;
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
     @media (max-width: 600px) {
       header { padding: 16px; }
       header h1 { font-size: 1.05rem; }
       .qa-answer { padding-left: 20px; }
       .filter-tab { font-size: 0.75rem; padding: 5px 10px; }
+      .contact-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
     }
   </style>
 </head>
@@ -335,25 +441,41 @@
 </header>
 
 <div class="container">
-  <div class="search-box">
-    <input type="text" id="searchInput" placeholder="質問を入力してください（例：10時間要件、助成率、計画届の期限、5割要件…）" />
-    <span class="search-icon">🔍</span>
-  </div>
-  <p class="search-hint">キーワードで絞り込めます。カテゴリタブでも絞り込み可能です。クリックで回答を展開します。</p>
-
-  <div class="filter-tabs" id="filterTabs">
-    <button class="filter-tab active" data-cat="all">すべて</button>
-    <button class="filter-tab" data-cat="基本">基本・制度概要</button>
-    <button class="filter-tab" data-cat="要件">支給要件</button>
-    <button class="filter-tab" data-cat="経費">経費・助成額</button>
-    <button class="filter-tab" data-cat="手続き">手続き・申請</button>
-    <button class="filter-tab" data-cat="注意">注意・不支給リスク</button>
-    <button class="filter-tab" data-cat="問合せ">要確認・問合せ事項</button>
+  <div class="view-toggle-bar">
+    <button class="view-toggle-btn active" id="btnViewQA">🔍 Q&amp;A 検索</button>
+    <button class="view-toggle-btn" id="btnViewContacts">📞 問合せ先一覧</button>
   </div>
 
-  <p class="result-count" id="resultCount"></p>
+  <!-- Q&A 検索セクション -->
+  <div class="qa-section" id="qaSection">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="質問を入力してください（例：10時間要件、助成率、計画届の期限、5割要件…）" />
+      <span class="search-icon">🔍</span>
+    </div>
+    <p class="search-hint">キーワードで絞り込めます。カテゴリタブでも絞り込み可能です。クリックで回答を展開します。</p>
 
-  <div class="qa-list" id="qaList"></div>
+    <div class="filter-tabs" id="filterTabs">
+      <button class="filter-tab active" data-cat="all">すべて</button>
+      <button class="filter-tab" data-cat="基本">基本・制度概要</button>
+      <button class="filter-tab" data-cat="要件">支給要件</button>
+      <button class="filter-tab" data-cat="経費">経費・助成額</button>
+      <button class="filter-tab" data-cat="手続き">手続き・申請</button>
+      <button class="filter-tab" data-cat="注意">注意・不支給リスク</button>
+      <button class="filter-tab" data-cat="問合せ">要確認・問合せ事項</button>
+    </div>
+
+    <p class="result-count" id="resultCount"></p>
+    <div class="qa-list" id="qaList"></div>
+  </div>
+
+  <!-- 問合せ先一覧セクション -->
+  <div class="contacts-section" id="contactsSection">
+    <p class="contacts-note">
+      📋 <strong>人材開発支援助成金（事業展開等リスキリング支援コース）</strong> の受付窓口です。<br>
+      各都道府県の助成金センター・労働局に直接お問い合わせください。出典：厚生労働省「助成金の申請等の受付窓口一覧」
+    </p>
+    <div id="contactsList"></div>
+  </div>
 </div>
 
 <script>
@@ -1130,6 +1252,103 @@ document.getElementById("filterTabs").addEventListener("click", e => {
 
 // 初回描画
 render();
+
+// ===== 問合せ先データ =====
+const contactsData = [
+  { region: "北海道・東北", contacts: [
+    { pref: "北海道", office: "北海道労働局 雇用助成金さっぽろセンター", phone: "011-788-9070" },
+    { pref: "青森", office: "青森労働局", phone: "017-721-2003" },
+    { pref: "岩手", office: "岩手労働局 助成金センター", phone: "019-606-3285" },
+    { pref: "宮城", office: "宮城労働局", phone: "022-299-8063" },
+    { pref: "秋田", office: "秋田労働局", phone: "018-883-0006" },
+    { pref: "山形", office: "山形労働局", phone: "023-624-8228" },
+    { pref: "福島", office: "福島労働局", phone: "024-529-5463" },
+  ]},
+  { region: "関東", contacts: [
+    { pref: "茨城", office: "茨城労働局", phone: "029-303-5861" },
+    { pref: "栃木", office: "栃木労働局", phone: "028-633-2795" },
+    { pref: "群馬", office: "群馬労働局", phone: "027-210-5008" },
+    { pref: "埼玉", office: "埼玉労働局", phone: "048-600-6210" },
+    { pref: "千葉", office: "千葉労働局", phone: "043-441-5678" },
+    { pref: "東京", office: "東京労働局", phone: "03-6894-7072" },
+    { pref: "神奈川", office: "神奈川労働局", phone: "045-270-7989" },
+    { pref: "山梨", office: "山梨労働局", phone: "055-225-2861" },
+  ]},
+  { region: "中部・北陸", contacts: [
+    { pref: "新潟", office: "新潟労働局", phone: "025-278-7181" },
+    { pref: "富山", office: "富山労働局", phone: "076-432-2793" },
+    { pref: "石川", office: "石川労働局", phone: "076-265-4428" },
+    { pref: "福井", office: "福井労働局 助成金センター", phone: "0776-22-2683" },
+    { pref: "長野", office: "長野労働局", phone: "026-226-0866" },
+    { pref: "岐阜", office: "岐阜労働局", phone: "058-245-1550" },
+    { pref: "静岡", office: "静岡労働局", phone: "054-275-3010" },
+    { pref: "愛知", office: "愛知労働局", phone: "052-688-5758" },
+    { pref: "三重", office: "三重労働局", phone: "059-213-9870" },
+  ]},
+  { region: "近畿", contacts: [
+    { pref: "滋賀", office: "滋賀労働局", phone: "077-523-1190" },
+    { pref: "京都", office: "京都労働局", phone: "075-275-8087" },
+    { pref: "大阪", office: "大阪労働局", phone: "06-7669-8900" },
+    { pref: "兵庫", office: "兵庫労働局", phone: "078-367-0700" },
+    { pref: "奈良", office: "奈良労働局 助成金センター", phone: "0742-35-6336" },
+    { pref: "和歌山", office: "和歌山労働局", phone: "073-488-1101" },
+  ]},
+  { region: "中国・四国", contacts: [
+    { pref: "鳥取", office: "鳥取労働局", phone: "0857-88-2777" },
+    { pref: "島根", office: "島根労働局", phone: "0852-20-7028" },
+    { pref: "岡山", office: "岡山労働局", phone: "086-238-5301" },
+    { pref: "広島", office: "広島労働局", phone: "082-221-9247" },
+    { pref: "山口", office: "山口労働局 助成金センター", phone: "083-902-1564" },
+    { pref: "徳島", office: "徳島労働局 助成金センター", phone: "088-652-2718" },
+    { pref: "香川", office: "香川労働局 助成金センター", phone: "087-823-0505" },
+    { pref: "愛媛", office: "愛媛労働局", phone: "089-987-6370" },
+    { pref: "高知", office: "高知労働局", phone: "088-885-6041" },
+  ]},
+  { region: "九州・沖縄", contacts: [
+    { pref: "福岡", office: "福岡助成金センター", phone: "092-402-0539" },
+    { pref: "佐賀", office: "佐賀労働局 職業安定部", phone: "0952-32-7173" },
+    { pref: "長崎", office: "長崎労働局", phone: "095-801-0042" },
+    { pref: "熊本", office: "熊本労働局", phone: "096-211-1704" },
+    { pref: "大分", office: "大分労働局", phone: "097-532-4025" },
+    { pref: "宮崎", office: "宮崎労働局 助成金センター", phone: "0985-62-3125" },
+    { pref: "鹿児島", office: "鹿児島労働局", phone: "099-219-5101" },
+    { pref: "沖縄", office: "沖縄労働局", phone: "098-868-1606" },
+  ]},
+];
+
+function renderContacts() {
+  const el = document.getElementById("contactsList");
+  el.innerHTML = contactsData.map(region => `
+    <div class="region-block">
+      <div class="region-title">${region.region}</div>
+      <div class="contact-grid">
+        ${region.contacts.map(c => `
+          <div class="contact-card">
+            <div class="contact-pref">${c.pref}</div>
+            <div class="contact-office">${c.office}</div>
+            <a class="contact-phone" href="tel:${c.phone}">📞 ${c.phone}</a>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `).join("");
+}
+
+// ビュー切り替え
+document.getElementById("btnViewQA").addEventListener("click", () => {
+  document.getElementById("qaSection").classList.remove("hidden");
+  document.getElementById("contactsSection").classList.remove("visible");
+  document.getElementById("btnViewQA").classList.add("active");
+  document.getElementById("btnViewContacts").classList.remove("active");
+});
+
+document.getElementById("btnViewContacts").addEventListener("click", () => {
+  document.getElementById("qaSection").classList.add("hidden");
+  document.getElementById("contactsSection").classList.add("visible");
+  document.getElementById("btnViewQA").classList.remove("active");
+  document.getElementById("btnViewContacts").classList.add("active");
+  renderContacts();
+});
 </script>
 </body>
 </html>
